@@ -258,13 +258,11 @@ var
   jcjy_itemid:string;//【检查建议】项目代码
   Eqip_Jcts:String;
   Eqip_Jcts2:String;
-  Eqip_Jcts22:String;
   Eqip_Jcts4:String;
   Peis_Unid:String;
   Eqip_Jcts_List:TStrings;
   RegEx: TPerlRegEx;
   RegEx2: TPerlRegEx;
-  RegEx22: TPerlRegEx;
   RegEx3: TPerlRegEx;
   RegEx4: TPerlRegEx;
   b3:boolean;
@@ -401,27 +399,18 @@ begin
     if pos('未见异常',Eqip_Jcts_List[i])>0 then continue;//颈椎骨质未见异常
 
     //生成检查结论begin
-    //删除检查提示中的序号(如1、23、)
+    //删除检查提示中的序号(如1、23、1.23.)
     RegEx2 := TPerlRegEx.Create;
-    RegEx2.Subject := Eqip_Jcts_List[i];
-    RegEx2.RegEx   := '\d{1,2}、';
+    RegEx2.Subject := trim(Eqip_Jcts_List[i]);
+    RegEx2.RegEx   := '^\d{1,2}(、|\.)';//.为正则表达式的元字符，故用\转义
     RegEx2.Replacement:='';
     RegEx2.ReplaceAll;
     Eqip_Jcts2:=RegEx2.Subject;
     FreeAndNil(RegEx2);
 
-    //删除检查提示中的序号(如1.23.)
-    RegEx22 := TPerlRegEx.Create;
-    RegEx22.Subject := Eqip_Jcts2;
-    RegEx22.RegEx   := '\d{1,2}\.';//.为正则表达式的元字符，故用\转义
-    RegEx22.Replacement:='';
-    RegEx22.ReplaceAll;
-    Eqip_Jcts22:=RegEx22.Subject;
-    FreeAndNil(RegEx22);
-
     //删除检查提示中的建议
     RegEx4 := TPerlRegEx.Create;
-    RegEx4.Subject := Eqip_Jcts22;
+    RegEx4.Subject := Eqip_Jcts2;
     RegEx4.RegEx   := '，建议[\s\S]*';
     RegEx4.Replacement:='';
     RegEx4.ReplaceAll;
