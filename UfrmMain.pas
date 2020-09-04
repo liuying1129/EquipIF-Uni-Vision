@@ -75,7 +75,7 @@ uses UCommFunction;
 
 const
   sCryptSeed='lc';//加解密种子
-  SYSNAME='LIS'; 
+  SYSNAME='PEIS'; 
 
 var
   PeisConnStr:String;
@@ -397,7 +397,8 @@ begin
   for i :=0  to Eqip_Jcts_List.Count-1 do
   begin
     if pos('未见实质性病变',Eqip_Jcts_List[i])>0 then continue;
-    //未见活动性病变
+    if pos('未见活动性病变',Eqip_Jcts_List[i])>0 then continue;
+    if pos('未见异常',Eqip_Jcts_List[i])>0 then continue;//颈椎骨质未见异常
 
     //生成检查结论begin
     //删除检查提示中的序号(如1、23、)
