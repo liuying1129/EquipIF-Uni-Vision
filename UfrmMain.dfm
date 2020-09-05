@@ -3,7 +3,7 @@ object frmMain: TfrmMain
   Top = 118
   Width = 1050
   Height = 538
-  Caption = 'HitachiNoblus->PEIS'
+  Caption = 'Uni-Vision->PEIS'
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -216,12 +216,12 @@ object frmMain: TfrmMain
       object Label4: TLabel
         Left = 31
         Top = 48
-        Width = 600
-        Height = 16
-        Caption = '3'#12289#32467#35770#29983#25104#35268#21017':'#20013#25991#21477#21495#12289#20998#21495#23558#26816#26597#25552#31034#20998#27573','#19981#21547'"'#26410#35265#26126#26174#24322#24120'"'#30340#25552#31034#20026#32467#35770
+        Width = 606
+        Height = 12
+        Caption = '3'#12289#32467#35770#29983#25104#35268#21017':'#20013#25991#21477#21495#12289#20998#21495#23558#26816#26597#25552#31034#20998#27573','#19981#21547'"'#26410#35265#23454#36136#24615#30149#21464'/'#26410#35265#27963#21160#24615#30149#21464'/'#26410#35265#24322#24120'"'#30340#25552#31034#20026#32467#35770
         Font.Charset = ANSI_CHARSET
         Font.Color = clRed
-        Font.Height = -16
+        Font.Height = -12
         Font.Name = #23435#20307
         Font.Style = [fsItalic]
         ParentFont = False
