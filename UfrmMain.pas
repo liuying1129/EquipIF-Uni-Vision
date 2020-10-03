@@ -37,13 +37,17 @@ type
     Panel1: TPanel;
     DBNavigator1: TDBNavigator;
     BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
     ActionList1: TActionList;
     Action1: TAction;
     Label1: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    DateTimePicker1: TDateTimePicker;
+    Label6: TLabel;
+    Label7: TLabel;
+    LabeledEdit1: TLabeledEdit;
+    DateTimePicker2: TDateTimePicker;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ADOQuery1AfterOpen(DataSet: TDataSet);
@@ -53,9 +57,12 @@ type
     procedure ADOQuery2AfterOpen(DataSet: TDataSet);
     procedure ADOQuery3AfterOpen(DataSet: TDataSet);
     procedure ADOQuery3AfterScroll(DataSet: TDataSet);
-    procedure BitBtn2Click(Sender: TObject);
     procedure DBGrid1DrawColumnCell(Sender: TObject; const Rect: TRect;
       DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure DateTimePicker1Change(Sender: TObject);
+    procedure DateTimePicker2Change(Sender: TObject);
+    procedure LabeledEdit1KeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { Private declarations }
     function MakeDBConn(const ADB:string;AADOConn:TADOConnection):boolean;
@@ -156,19 +163,21 @@ end;
 
 procedure TfrmMain.UpdateEquipAdoquery;
 var
-  ss1:string;
+  ss1,ss2:string;
 begin
-  ss1:='SELECT TOP 1000 '+
+  if trim(LabeledEdit1.Text)<>'' then ss2:=' and P.patient_id like '''+trim(LabeledEdit1.Text)+'%'' ';
+  
+  ss1:='SELECT TOP 10000 '+
         'P.patient_name as 姓名 '+
        ',P.patient_age as 年龄 '+
        ',P.patient_sex as 性别 '+
-       ',S.study_dttm as 创建时间 '+
+       ',S.study_dttm as 创建时间 '+//X光系统界面的检查时间
        ',S.deft_name as 送检科室 '+
        ',S.refer_doctor as 送检医生 '+
   	   ',R.Diagnosis as 检查提示 '+
+  	   ',P.patient_id '+
 	     ',R.Finding as 检查所见 '+
 	     ',P.patient_key '+
-       ',P.patient_id '+
        ',P.patient_birth_date '+
        ',S.study_key '+
        ',S.study_instance_uid '+
@@ -201,7 +210,9 @@ begin
   ' where S.status in (''已报告'',''已审核'') '+//只查询已完成报告单
   ' and S.deft_name=''体检'' '+//只查询体检报告单(申请科室=体检)
   ' and P.patient_name is not null and P.patient_name<>'''' '+//无姓名不发送
-  'order by p.patient_key desc';
+  ' AND S.study_dttm between :begin_study_dttm and :end_study_dttm '+
+  ss2+
+  ' order by p.patient_key desc';
 
 //Patient:病人信息表
 //Study:送检医生、送检科室、检查医生、检查部位、金额
@@ -212,13 +223,20 @@ begin
   ADOQuery1.Close;
   ADOQuery1.SQL.Clear;
   ADOQuery1.SQL.Add(ss1);
+  ADOQuery1.Parameters.ParamByName('begin_study_dttm').Value:=DateTimePicker1.DateTime;
+  ADOQuery1.Parameters.ParamByName('end_study_dttm').Value:=DateTimePicker2.DateTime;
   ADOQuery1.Open;
 end;
 
 procedure TfrmMain.FormShow(Sender: TObject);
 begin
   StatusBar1.Panels[2].Text:=SYSNAME;
-  
+
+  DateTimePicker1.Date := now-30;
+  DateTimePicker1.Time := StrToTime('00:00:01');
+  DateTimePicker2.Date := now;
+  DateTimePicker2.Time := StrToTime('23:59:59');
+
   UpdateEquipAdoquery;
 end;
 
@@ -245,7 +263,7 @@ begin
   dbgrid1.Columns[4].Width:=60;
   dbgrid1.Columns[5].Width:=55;
   dbgrid1.Columns[6].Width:=300;
-  dbgrid1.Columns[7].Width:=200;
+  dbgrid1.Columns[7].Width:=73;
 
   DataSet.FieldByName('检查提示').OnGetText:=GetEquipJcts;
 end;
@@ -509,7 +527,9 @@ begin
     ExecSQLCmd(EquipConnStr,'insert into PEIS_Send (StudyResultIdentity,SendSuccNum) values ('+StudyResultIdentity+',1)')
   else ExecSQLCmd(EquipConnStr,'update PEIS_Send set SendSuccNum=SendSuccNum+1 where StudyResultIdentity='+StudyResultIdentity);
 
-  BitBtn2Click(BitBtn2);//用于刷新已发送的颜色//该语句一定会触发UpdateAdoquery3方法。故无需再次ADOQuery3.Requery;
+  //用于刷新已发送的颜色//该语句一定会触发UpdateAdoquery3方法。故无需再次ADOQuery3.Requery;
+  UpdateEquipAdoquery;
+  ADOQuery1.Locate('report_key',StudyResultIdentity,[loCaseInsensitive]) ;
 
   MESSAGEDLG('发送完成!',mtInformation,[MBOK],0);
 end;
@@ -605,15 +625,6 @@ begin
   Label2.Caption:=DataSet.fieldbyname('名称').AsString;
 end;
 
-procedure TfrmMain.BitBtn2Click(Sender: TObject);
-var
-  PatientIdentity:String;
-begin
-  PatientIdentity:=ADOQuery1.fieldbyname('report_key').AsString;
-  ADOQuery1.Requery;
-  ADOQuery1.Locate('report_key',PatientIdentity,[loCaseInsensitive]) ;
-end;
-
 procedure TfrmMain.DBGrid1DrawColumnCell(Sender: TObject;
   const Rect: TRect; DataCol: Integer; Column: TColumn;
   State: TGridDrawState);
@@ -632,6 +643,26 @@ begin
       tdbgrid(sender).DefaultDrawColumnCell(rect,datacol,column,state);
     end;
   end;
+end;
+
+procedure TfrmMain.DateTimePicker1Change(Sender: TObject);
+begin
+  UpdateEquipAdoquery;//ADOQuery1.Requery;
+end;
+
+procedure TfrmMain.DateTimePicker2Change(Sender: TObject);
+begin
+  UpdateEquipAdoquery;//ADOQuery1.Requery;
+end;
+
+procedure TfrmMain.LabeledEdit1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key<>13 then EXIT;
+
+  UpdateEquipAdoquery;//ADOQuery1.Requery;
+
+  if (Sender as TLabeledEdit).CanFocus then begin (Sender as TLabeledEdit).SetFocus;(Sender as TLabeledEdit).SelectAll; end;
 end;
 
 end.

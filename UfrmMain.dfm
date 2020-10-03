@@ -38,9 +38,9 @@ object frmMain: TfrmMain
       end>
   end
   object GroupBox1: TGroupBox
-    Left = 644
+    Left = 717
     Top = 0
-    Width = 390
+    Width = 317
     Height = 480
     Align = alClient
     Caption = 'PEIS'#20449#24687
@@ -48,7 +48,7 @@ object frmMain: TfrmMain
     object DBGrid2: TDBGrid
       Left = 2
       Top = 15
-      Width = 386
+      Width = 313
       Height = 150
       Align = alTop
       DataSource = DataSource2
@@ -63,7 +63,7 @@ object frmMain: TfrmMain
     object PageControl2: TPageControl
       Left = 2
       Top = 165
-      Width = 386
+      Width = 313
       Height = 313
       ActivePage = TabSheet4
       Align = alClient
@@ -92,7 +92,7 @@ object frmMain: TfrmMain
         object Panel2: TPanel
           Left = 0
           Top = 0
-          Width = 378
+          Width = 305
           Height = 40
           Align = alTop
           TabOrder = 0
@@ -122,7 +122,7 @@ object frmMain: TfrmMain
         object Memo2: TMemo
           Left = 0
           Top = 40
-          Width = 378
+          Width = 305
           Height = 245
           Align = alClient
           ReadOnly = True
@@ -134,7 +134,7 @@ object frmMain: TfrmMain
   object GroupBox2: TGroupBox
     Left = 0
     Top = 0
-    Width = 644
+    Width = 717
     Height = 480
     Align = alLeft
     Caption = #35774#22791#26816#26597#20449#24687
@@ -142,7 +142,7 @@ object frmMain: TfrmMain
     object PageControl1: TPageControl
       Left = 2
       Top = 131
-      Width = 640
+      Width = 713
       Height = 347
       ActivePage = TabSheet1
       Align = alClient
@@ -152,7 +152,7 @@ object frmMain: TfrmMain
         object DBGrid1: TDBGrid
           Left = 0
           Top = 0
-          Width = 632
+          Width = 705
           Height = 319
           Align = alClient
           DataSource = DataSource1
@@ -183,7 +183,7 @@ object frmMain: TfrmMain
     object Panel1: TPanel
       Left = 2
       Top = 15
-      Width = 640
+      Width = 713
       Height = 116
       Align = alTop
       TabOrder = 1
@@ -239,8 +239,22 @@ object frmMain: TfrmMain
         Font.Style = [fsItalic]
         ParentFont = False
       end
+      object Label6: TLabel
+        Left = 155
+        Top = 93
+        Width = 13
+        Height = 13
+        Caption = #33267
+      end
+      object Label7: TLabel
+        Left = 7
+        Top = 93
+        Width = 52
+        Height = 13
+        Caption = #21019#24314#26102#38388
+      end
       object DBNavigator1: TDBNavigator
-        Left = 144
+        Left = 518
         Top = 87
         Width = 192
         Height = 25
@@ -249,7 +263,7 @@ object frmMain: TfrmMain
         TabOrder = 0
       end
       object BitBtn1: TBitBtn
-        Left = 376
+        Left = 386
         Top = 87
         Width = 100
         Height = 25
@@ -257,14 +271,40 @@ object frmMain: TfrmMain
         TabOrder = 1
         OnClick = N1Click
       end
-      object BitBtn2: TBitBtn
-        Left = 8
-        Top = 87
-        Width = 75
-        Height = 25
-        Caption = #21047#26032
+      object DateTimePicker1: TDateTimePicker
+        Left = 60
+        Top = 90
+        Width = 95
+        Height = 21
+        Date = 44117.382772129630000000
+        Time = 44117.382772129630000000
         TabOrder = 2
-        OnClick = BitBtn2Click
+        OnChange = DateTimePicker1Change
+      end
+      object LabeledEdit1: TLabeledEdit
+        Left = 290
+        Top = 90
+        Width = 70
+        Height = 21
+        Hint = #22238#36710#26597#35810
+        EditLabel.Width = 14
+        EditLabel.Height = 13
+        EditLabel.Caption = 'ID'
+        LabelPosition = lpLeft
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+        OnKeyDown = LabeledEdit1KeyDown
+      end
+      object DateTimePicker2: TDateTimePicker
+        Left = 170
+        Top = 90
+        Width = 95
+        Height = 21
+        Date = 44117.382772129630000000
+        Time = 44117.382772129630000000
+        TabOrder = 4
+        OnChange = DateTimePicker2Change
       end
     end
   end
