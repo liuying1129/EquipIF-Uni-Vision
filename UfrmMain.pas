@@ -77,7 +77,7 @@ type
     function BuildPeisSQL(const AName,ASex,AAge:string):String;
     procedure UpdateAdoquery3;
     procedure GetEquipJcts(Sender: TField; var Text: String;DisplayText: Boolean);
-    function singleSend2Peis(const EquipUnid:String):boolean;
+    function singleSend2Peis(const AEquipUnid,AEquipName,AEquipSex,AEquipAge,AEquipJcts:String):boolean;
   public
     { Public declarations }
   end;
@@ -298,7 +298,7 @@ begin
   adotemp22.Free;
 end;
 
-function TfrmMain.singleSend2Peis(const EquipUnid:String): boolean;
+function TfrmMain.singleSend2Peis(const AEquipUnid,AEquipName,AEquipSex,AEquipAge,AEquipJcts:String): boolean;
 var
   adotemp3,adotemp4,adotemp5,adotemp555:tadoquery;
   jcts_itemid:string;//【检查提示】项目代码
@@ -306,7 +306,6 @@ var
   jcjy_itemid:string;//【检查建议】项目代码
   jcjl_combinid:string;//【检查结论】组合项目代码
   jcjy_combinid:string;//【检查建议】组合项目代码
-  Eqip_Jcts:String;
   Eqip_Jcts2:String;
   Eqip_Jcts4:String;
   Peis_Unid:String;
@@ -325,56 +324,31 @@ var
   Peis_Jcjl_Num:integer;
   Peis_Jcjy_Num:integer;
 
-  adotemp33,adotemp44:tadoquery;
-
-  Eqip_Name:string;
-  Eqip_Sex:string;
-  Eqip_Age:string;
+  adotemp44:tadoquery;
 begin
   result:=false;
-  
-  adotemp33:=tadoquery.Create(nil);
-  adotemp33.Connection:=ADOConnEquip;
-  adotemp33.Close;
-  adotemp33.SQL.Clear;
-  adotemp33.SQL.Text:='SELECT P.patient_name,P.patient_age,P.patient_sex,R.Diagnosis '+
-  ' FROM Patient P,Study S,Report R '+
-  ' where S.patient_key=P.patient_key and R.study_key=S.study_key '+
-  ' and R.report_key='+EquipUnid;
-  adotemp33.Open;
-  if adotemp33.RecordCount<>1 then
-  begin
-    MESSAGEDLG(EquipUnid+':检查记录数量不为1!',mtError,[MBOK],0);
-    adotemp33.Free;
-    exit;
-  end;
-  Eqip_Name:=adotemp33.fieldbyname('patient_name').AsString;
-  Eqip_Sex:=adotemp33.fieldbyname('patient_sex').AsString;
-  Eqip_Age:=adotemp33.fieldbyname('patient_age').AsString;
-  Eqip_Jcts:=adotemp33.fieldbyname('Diagnosis').AsString;
-  adotemp33.Free;
 
   adotemp44:=tadoquery.Create(nil);
   adotemp44.Connection:=ADOConnPEIS;
   adotemp44.Close;
   adotemp44.SQL.Clear;
-  adotemp44.SQL.Text:=BuildPeisSQL(Eqip_Name,Eqip_Sex,Eqip_Age);
+  adotemp44.SQL.Text:=BuildPeisSQL(AEquipName,AEquipSex,AEquipAge);
   adotemp44.Open;
   if adotemp44.RecordCount<=0 then
   begin
-    MESSAGEDLG(Eqip_Name+':PEIS无该受检者!',mtError,[MBOK],0);
+    MESSAGEDLG(AEquipName+':PEIS无该受检者!',mtError,[MBOK],0);
     adotemp44.Free;
     exit;
   end;
   if adotemp44.RecordCount>1 then
   begin
-    MESSAGEDLG(Eqip_Name+':该受检者在PEIS有多条记录!',mtError,[MBOK],0);
+    MESSAGEDLG(AEquipName+':该受检者在PEIS有多条记录!',mtError,[MBOK],0);
     adotemp44.Free;
     exit;
   end;
   if adotemp44.FieldByName('审核者').AsString<>'' then
   begin
-    MESSAGEDLG(Eqip_Name+':该受检者在PEIS已审核!',mtError,[MBOK],0);
+    MESSAGEDLG(AEquipName+':该受检者在PEIS已审核!',mtError,[MBOK],0);
     adotemp44.Free;
     exit;
   end;
@@ -449,15 +423,15 @@ begin
   Peis_Jcts_Num:=strtoint(ScalarSQLCmd(PeisConnStr,'select count(*) from chk_valu cv where cv.pkunid='+Peis_Unid+' and cv.itemid='''+jcts_itemid+''' '));
   if Peis_Jcts_Num<=0 then
   begin
-    ExecSQLCmd(PeisConnStr,'insert into chk_valu (pkunid,itemid,itemvalue) values ('+Peis_Unid+','''+jcts_itemid+''','''+Eqip_Jcts+''')');
+    ExecSQLCmd(PeisConnStr,'insert into chk_valu (pkunid,itemid,itemvalue) values ('+Peis_Unid+','''+jcts_itemid+''','''+AEquipJcts+''')');
   end else
   begin
     //if (MessageDlg('PEIS存在检查数据,将覆盖原有检查数据,确定吗？', mtConfirmation, [mbYes, mbNo], 0) <> mrYes) then exit;
-    ExecSQLCmd(PeisConnStr,'update chk_valu set itemvalue='''+Eqip_Jcts+''' where pkunid='+Peis_Unid+' and itemid='''+jcts_itemid+''' ');
+    ExecSQLCmd(PeisConnStr,'update chk_valu set itemvalue='''+AEquipJcts+''' where pkunid='+Peis_Unid+' and itemid='''+jcts_itemid+''' ');
   end;
 
   RegEx := TPerlRegEx.Create;
-  RegEx.Subject := Eqip_Jcts;
+  RegEx.Subject := AEquipJcts;
   RegEx.RegEx   := '。|；';//用|分隔多个分隔符.正则表达式|表示"或"
   Eqip_Jcts_List:=TStringList.Create;
   try
@@ -465,8 +439,8 @@ begin
   except
     on E:Exception do
     begin
-      WriteLog(pchar(Eqip_Name+':RegEx.Split失败:'+E.Message));
-      MESSAGEDLG(Eqip_Name+':RegEx.Split失败:'+E.Message,mtError,[mbOK],0);
+      WriteLog(pchar(AEquipName+':RegEx.Split失败:'+E.Message));
+      MESSAGEDLG(AEquipName+':RegEx.Split失败:'+E.Message,mtError,[mbOK],0);
       FreeAndNil(RegEx);
       Eqip_Jcts_List.Free;
       exit;
@@ -490,8 +464,8 @@ begin
     except
       on E:Exception do
       begin
-        WriteLog(pchar(Eqip_Name+':Subject:'+trim(Eqip_Jcts_List[i])+'.删除检查提示序号RegEx.ReplaceAll失败:'+E.Message));
-        MESSAGEDLG(Eqip_Name+':Subject:'+trim(Eqip_Jcts_List[i])+'.删除检查提示序号RegEx.ReplaceAll失败:'+E.Message,mtError,[mbOK],0);
+        WriteLog(pchar(AEquipName+':Subject:'+trim(Eqip_Jcts_List[i])+'.删除检查提示序号RegEx.ReplaceAll失败:'+E.Message));
+        MESSAGEDLG(AEquipName+':Subject:'+trim(Eqip_Jcts_List[i])+'.删除检查提示序号RegEx.ReplaceAll失败:'+E.Message,mtError,[mbOK],0);
         FreeAndNil(RegEx2);
         Eqip_Jcts_List.Free;
         exit;
@@ -510,8 +484,8 @@ begin
     except
       on E:Exception do
       begin
-        WriteLog(pchar(Eqip_Name+':Subject:'+Eqip_Jcts2+'.删除检查提示建议RegEx.ReplaceAll失败:'+E.Message));
-        MESSAGEDLG(Eqip_Name+':Subject:'+Eqip_Jcts2+'.删除检查提示建议RegEx.ReplaceAll失败:'+E.Message,mtError,[mbOK],0);
+        WriteLog(pchar(AEquipName+':Subject:'+Eqip_Jcts2+'.删除检查提示建议RegEx.ReplaceAll失败:'+E.Message));
+        MESSAGEDLG(AEquipName+':Subject:'+Eqip_Jcts2+'.删除检查提示建议RegEx.ReplaceAll失败:'+E.Message,mtError,[mbOK],0);
         FreeAndNil(RegEx4);
         Eqip_Jcts_List.Free;
         exit;
@@ -541,8 +515,8 @@ begin
       except
         on E:Exception do
         begin
-          WriteLog(pchar(Eqip_Name+':Subject:'+Eqip_Jcts_List[i]+'.RegEx.Match失败:'+E.Message+'.正则表达式:'+adotemp555.fieldbyname('name').AsString));
-          MESSAGEDLG(Eqip_Name+':Subject:'+Eqip_Jcts_List[i]+'.RegEx.Match失败:'+E.Message+'.正则表达式:'+adotemp555.fieldbyname('name').AsString,mtError,[mbOK],0);
+          WriteLog(pchar(AEquipName+':Subject:'+Eqip_Jcts_List[i]+'.RegEx.Match失败:'+E.Message+'.正则表达式:'+adotemp555.fieldbyname('name').AsString));
+          MESSAGEDLG(AEquipName+':Subject:'+Eqip_Jcts_List[i]+'.RegEx.Match失败:'+E.Message+'.正则表达式:'+adotemp555.fieldbyname('name').AsString,mtError,[mbOK],0);
           FreeAndNil(RegEx3);
           Eqip_Jcts_List.Free;
           adotemp555.Free;
@@ -576,9 +550,9 @@ begin
     ExecSQLCmd(PeisConnStr,'update chk_valu set itemvalue=itemvalue+'''+Peis_Jcjy+''' where pkunid='+Peis_Unid+' and itemid='''+jcjy_itemid+''' ');
   end;
 
-  if strtoint(ScalarSQLCmd(EquipConnStr,'select count(*) from PEIS_Send ps where ps.StudyResultIdentity='+EquipUnid))<=0 then
-    ExecSQLCmd(EquipConnStr,'insert into PEIS_Send (StudyResultIdentity,SendSuccNum) values ('+EquipUnid+',1)')
-  else ExecSQLCmd(EquipConnStr,'update PEIS_Send set SendSuccNum=SendSuccNum+1 where StudyResultIdentity='+EquipUnid);
+  if strtoint(ScalarSQLCmd(EquipConnStr,'select count(*) from PEIS_Send ps where ps.StudyResultIdentity='+AEquipUnid))<=0 then
+    ExecSQLCmd(EquipConnStr,'insert into PEIS_Send (StudyResultIdentity,SendSuccNum) values ('+AEquipUnid+',1)')
+  else ExecSQLCmd(EquipConnStr,'update PEIS_Send set SendSuccNum=SendSuccNum+1 where StudyResultIdentity='+AEquipUnid);
 
   result:=true;
 end;
@@ -811,7 +785,7 @@ begin
     end;
     if not ifSelect then begin adotemp11.Next;continue;end;//如果未选择，则跳过
 
-    singleSend2Peis(adotemp11.FieldByName('report_key').AsString);
+    singleSend2Peis(adotemp11.FieldByName('report_key').AsString,adotemp11.FieldByName('姓名').AsString,adotemp11.FieldByName('性别').AsString,adotemp11.FieldByName('年龄').AsString,adotemp11.FieldByName('检查提示').AsString);
 
     adotemp11.Next;
   end;
