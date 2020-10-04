@@ -38,9 +38,9 @@ object frmMain: TfrmMain
       end>
   end
   object GroupBox1: TGroupBox
-    Left = 717
+    Left = 747
     Top = 0
-    Width = 317
+    Width = 287
     Height = 480
     Align = alClient
     Caption = 'PEIS'#20449#24687
@@ -48,7 +48,7 @@ object frmMain: TfrmMain
     object DBGrid2: TDBGrid
       Left = 2
       Top = 15
-      Width = 313
+      Width = 283
       Height = 150
       Align = alTop
       DataSource = DataSource2
@@ -63,7 +63,7 @@ object frmMain: TfrmMain
     object PageControl2: TPageControl
       Left = 2
       Top = 165
-      Width = 313
+      Width = 283
       Height = 313
       ActivePage = TabSheet4
       Align = alClient
@@ -92,7 +92,7 @@ object frmMain: TfrmMain
         object Panel2: TPanel
           Left = 0
           Top = 0
-          Width = 305
+          Width = 275
           Height = 40
           Align = alTop
           TabOrder = 0
@@ -122,7 +122,7 @@ object frmMain: TfrmMain
         object Memo2: TMemo
           Left = 0
           Top = 40
-          Width = 305
+          Width = 275
           Height = 245
           Align = alClient
           ReadOnly = True
@@ -134,7 +134,7 @@ object frmMain: TfrmMain
   object GroupBox2: TGroupBox
     Left = 0
     Top = 0
-    Width = 717
+    Width = 747
     Height = 480
     Align = alLeft
     Caption = #35774#22791#26816#26597#20449#24687
@@ -142,7 +142,7 @@ object frmMain: TfrmMain
     object PageControl1: TPageControl
       Left = 2
       Top = 131
-      Width = 713
+      Width = 743
       Height = 347
       ActivePage = TabSheet1
       Align = alClient
@@ -152,7 +152,7 @@ object frmMain: TfrmMain
         object DBGrid1: TDBGrid
           Left = 0
           Top = 0
-          Width = 705
+          Width = 735
           Height = 319
           Align = alClient
           DataSource = DataSource1
@@ -163,6 +163,7 @@ object frmMain: TfrmMain
           TitleFont.Height = -13
           TitleFont.Name = #23435#20307
           TitleFont.Style = []
+          OnCellClick = DBGrid1CellClick
           OnDrawColumnCell = DBGrid1DrawColumnCell
         end
       end
@@ -183,7 +184,7 @@ object frmMain: TfrmMain
     object Panel1: TPanel
       Left = 2
       Top = 15
-      Width = 713
+      Width = 743
       Height = 116
       Align = alTop
       TabOrder = 1
@@ -253,8 +254,24 @@ object frmMain: TfrmMain
         Height = 13
         Caption = #21019#24314#26102#38388
       end
+      object SpeedButton1: TSpeedButton
+        Left = 465
+        Top = 89
+        Width = 35
+        Height = 22
+        Caption = #20840#36873
+        OnClick = SpeedButton1Click
+      end
+      object SpeedButton2: TSpeedButton
+        Left = 500
+        Top = 89
+        Width = 45
+        Height = 22
+        Caption = #20840#19981#36873
+        OnClick = SpeedButton2Click
+      end
       object DBNavigator1: TDBNavigator
-        Left = 518
+        Left = 548
         Top = 87
         Width = 192
         Height = 25
@@ -263,13 +280,13 @@ object frmMain: TfrmMain
         TabOrder = 0
       end
       object BitBtn1: TBitBtn
-        Left = 386
+        Left = 362
         Top = 87
         Width = 100
         Height = 25
         Caption = #21457#36865#21040'PEIS(F3)'
         TabOrder = 1
-        OnClick = N1Click
+        OnClick = BitBtn1Click
       end
       object DateTimePicker1: TDateTimePicker
         Left = 60
@@ -365,7 +382,6 @@ object frmMain: TfrmMain
     object Action1: TAction
       Caption = 'Action1'
       ShortCut = 114
-      OnExecute = N1Click
     end
   end
 end
