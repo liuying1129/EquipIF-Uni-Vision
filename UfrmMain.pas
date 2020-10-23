@@ -5,9 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, ToolWin, Inifiles, DB, ADODB, Grids, DBGrids, Menus,
-  StdCtrls, ExtCtrls,PerlRegEx, DBCtrls, Buttons, ActnList, Math, StrUtils;
-
-type TArCheckBoxValue = array of array [0..1] of integer;
+  StdCtrls, ExtCtrls,PerlRegEx, DBCtrls, Buttons, ActnList, StrUtils;
 
 type
   TfrmMain = class(TForm)
@@ -96,7 +94,7 @@ const
 var
   PeisConnStr:String;
   EquipConnStr:String;
-  ArCheckBoxValue:TArCheckBoxValue;
+  ArCheckBoxValue:TStrings;//key唯一,才能保证业务逻辑正确
 
 {$R *.dfm}
 
@@ -265,9 +263,6 @@ begin
 end;
 
 procedure TfrmMain.ADOQuery1AfterOpen(DataSet: TDataSet);
-var
-  adotemp22:tadoquery;
-  i:integer;
 begin
   dbgrid1.Columns[0].Width:=42;
   dbgrid1.Columns[1].Width:=30;
@@ -280,22 +275,8 @@ begin
   dbgrid1.Columns[8].Width:=73;
 
   DataSet.FieldByName('检查提示').OnGetText:=GetEquipJcts;
-
-  adotemp22:=tadoquery.Create(nil);
-  adotemp22.clone(DataSet as TCustomADODataSet);
-  ArCheckBoxValue:=nil;
-  setlength(ArCheckBoxValue,adotemp22.RecordCount);
-  i:=0;
-  while not adotemp22.Eof do
-  begin
-    //该二维数组中一定要有个字段标识唯一性的
-    ArCheckBoxValue[I,0]:=0;
-    ArCheckBoxValue[I,1]:=adotemp22.FieldByName('report_key').AsInteger;
-
-    adotemp22.Next;
-    inc(i);
-  end;
-  adotemp22.Free;
+  
+  ArCheckBoxValue.Clear;
 end;
 
 function TfrmMain.singleSend2Peis(const AEquipUnid,AEquipName,AEquipSex,AEquipAge,AEquipJcts:String): boolean;
@@ -648,7 +629,6 @@ var
   SendSuccNum:integer;
   
   checkBox_check:boolean;
-  iUNID,i:INTEGER;
 begin
   //发送过的姓名列变化颜色
   if datacol=0 then
@@ -665,16 +645,7 @@ begin
   if Column.Field.FieldName='选择' then
   begin
     (sender as TDBGrid).Canvas.FillRect(Rect);
-    checkBox_check:=false;
-    iUNID:=(Sender AS TDBGRID).DataSource.DataSet.FieldByName('report_key').AsInteger;
-    for i :=0  to (Sender AS TDBGRID).DataSource.DataSet.RecordCount-1 do
-    begin
-      if ArCheckBoxValue[i,1]=iUNID then
-      begin
-        checkBox_check:=ArCheckBoxValue[i,0]=1;
-        break;
-      end;
-    end;//}
+    checkBox_check:=ArCheckBoxValue.Values[(Sender AS TDBGRID).DataSource.DataSet.FieldByName('report_key').AsString]='1';
     DrawFrameControl((sender as TDBGrid).Canvas.Handle,Rect, DFC_BUTTON, CtrlState[checkBox_check]);
   end else (sender as TDBGrid).DefaultDrawColumnCell(Rect,DataCol,Column,State);
 end;
@@ -700,31 +671,23 @@ begin
 end;
 
 procedure TfrmMain.DBGrid1CellClick(Column: TColumn);
-var
-  iUNID,i:INTEGER;
 begin
   if not Column.Grid.DataSource.DataSet.Active then exit;  
   if Column.Field.FieldName <>'选择' then exit;
 
-  iUNID:=Column.Grid.DataSource.DataSet.FieldByName('report_key').AsInteger;
-  for i :=low(ArCheckBoxValue)  to high(ArCheckBoxValue) do//循环ArCheckBoxValue
-  begin
-    if ArCheckBoxValue[i,1]=iUNID then
-    begin
-      ArCheckBoxValue[i,0]:=ifThen(ArCheckBoxValue[i,0]=1,0,1);
-      Column.Grid.Refresh;//调用DBGrid1DrawColumnCell事件
-      break;
-    end;
-  end;
+  //TStringList中无该键的情况会自动新增
+  ArCheckBoxValue.Values[Column.Grid.DataSource.DataSet.FieldByName('report_key').AsString]:=
+    ifThen(ArCheckBoxValue.Values[Column.Grid.DataSource.DataSet.FieldByName('report_key').AsString]='1','0','1');
+  Column.Grid.Refresh;//调用DBGrid1DrawColumnCell事件
 end;
 
 procedure TfrmMain.SpeedButton1Click(Sender: TObject);
 var
   i:integer;
 begin
-  for i:=LOW(ArCheckBoxValue) to HIGH(ArCheckBoxValue) do
+  for i:=0 to ArCheckBoxValue.Count-1 do
   begin
-    ArCheckBoxValue[I,0]:=1;
+    ArCheckBoxValue.ValueFromIndex[i]:='1';
   end;
   DBGrid1.Refresh;//调用DBGrid1DrawColumnCell事件
 end;
@@ -733,9 +696,9 @@ procedure TfrmMain.SpeedButton2Click(Sender: TObject);
 var
   i:integer;
 begin
-  for i:=LOW(ArCheckBoxValue) to HIGH(ArCheckBoxValue) do
+  for i:=0 to ArCheckBoxValue.Count-1 do
   begin
-    ArCheckBoxValue[I,0]:=0;
+    ArCheckBoxValue.ValueFromIndex[i]:='0';
   end;
   DBGrid1.Refresh;//调用DBGrid1DrawColumnCell事件
 end;
@@ -753,17 +716,24 @@ end;
 
 procedure TfrmMain.BitBtn1Click(Sender: TObject);
 var
-  i:integer;
   Save_Cursor:TCursor;
   adotemp11:tadoquery;
   ifSelect:boolean;
   StudyResultIdentity:integer;
+  i:integer;
 begin
   if (not ADOQuery1.Active)or(ADOQuery1.RecordCount<=0) then
   begin
     MESSAGEDLG('无发送数据!',mtError,[MBOK],0);
     exit;
   end;
+
+  ifSelect:=false;
+  for i:=0 to ArCheckBoxValue.Count-1 do
+  begin
+    if ArCheckBoxValue.ValueFromIndex[i]='1' then begin ifSelect:=true;break;end;
+  end;
+  if not ifSelect then begin MESSAGEDLG('未选择,无发送数据!',mtError,[MBOK],0);exit;end;
 
   (Sender as TBitBtn).Enabled:=false;
 
@@ -774,18 +744,8 @@ begin
   adotemp11.clone(ADOQuery1);
   while not adotemp11.Eof do
   begin
-    ifSelect:=false;
-    for i :=low(ArCheckBoxValue)  to high(ArCheckBoxValue) do//循环ArCheckBoxValue
-    begin
-      if (ArCheckBoxValue[i,1]=adotemp11.fieldbyname('report_key').AsInteger)and(ArCheckBoxValue[i,0]=1) then
-      begin
-        ifSelect:=true;
-        break;
-      end;
-    end;
-    if not ifSelect then begin adotemp11.Next;continue;end;//如果未选择，则跳过
-
-    singleSend2Peis(adotemp11.FieldByName('report_key').AsString,adotemp11.FieldByName('姓名').AsString,adotemp11.FieldByName('性别').AsString,adotemp11.FieldByName('年龄').AsString,adotemp11.FieldByName('检查提示').AsString);
+    if ArCheckBoxValue.Values[adotemp11.fieldbyname('report_key').AsString]='1' then
+      singleSend2Peis(adotemp11.FieldByName('report_key').AsString,adotemp11.FieldByName('姓名').AsString,adotemp11.FieldByName('性别').AsString,adotemp11.FieldByName('年龄').AsString,adotemp11.FieldByName('检查提示').AsString);
 
     adotemp11.Next;
   end;
@@ -802,5 +762,11 @@ begin
 
   MESSAGEDLG('发送操作已完成!',mtInformation,[MBOK],0);
 end;
+
+initialization
+  ArCheckBoxValue:=TStringList.Create;
+
+finalization
+  ArCheckBoxValue.Free;
 
 end.
