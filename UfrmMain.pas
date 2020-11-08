@@ -277,6 +277,8 @@ begin
   DataSet.FieldByName('ºÏ≤ÈÃ· æ').OnGetText:=GetEquipJcts;
   
   ArCheckBoxValue.Clear;
+  
+  StatusBar1.Panels[4].Text:=inttostr(DataSet.RecordCount);
 end;
 
 function TfrmMain.singleSend2Peis(const AEquipUnid,AEquipName,AEquipSex,AEquipAge,AEquipJcts:String): boolean;
